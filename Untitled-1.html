@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorant Hub - Interativo</title>
+    <style>
+        /* CSS - ESTILIZAÇÃO */
+        :root {
+            --red: #ff4655;
+            --dark: #0f1923;
+            --white: #ece8e1;
+            --gray: #7e7e7e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* Fundo com marca d'água */
+        body::before {
+            content: "VALORANT";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20vw;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.03);
+            z-index: -1;
+        }
+
+        header {
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 25, 35, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--red);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--red);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        nav a {
+            color: var(--white);
+            text-decoration: none;
+            margin-left: 20px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: var(--red);
+        }
+
+        .hero {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 10%;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .hero p {
+            color: var(--gray);
+            max-width: 600px;
+        }
+
+        .container {
+            padding: 50px 5%;
+        }
+
+        /* Seção de Agentes */
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .btn-filter {
+            background: transparent;
+            border: 1px solid var(--gray);
+            color: var(--white);
+            padding: 10px 25px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-filter.active, .btn-filter:hover {
+            background: var(--red);
+            border-color: var(--red);
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .agent-card {
+            background: #1f2933;
+            border-bottom: 4px solid transparent;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--red);
+        }
+
+        .agent-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background: linear-gradient(to top, #1f2933, transparent);
+        }
+
+        .agent-info {
+            padding: 20px;
+        }
+
+        .agent-info h3 {
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .agent-info span {
+            color: var(--red);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Modal/Alerta Customizado */
+        #status-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--red);
+            padding: 15px 30px;
+            display: none;
+            animation: slideIn 0.5s forwards;
+            font-weight: bold;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Valorant Hub</div>
+        <nav>
+            <a href="#agentes">Agentes</a>
+            <a href="https://playvalorant.com/" target="_blank">Site Oficial</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Defina os limites</h1>
+        <p>Um jogo de tiro tático 5x5 com personagens originais, focado na precisão do tiro e no uso de habilidades únicas.</p>
+    </section>
+
+    <div class="container" id="agentes">
+        <div class="filter-buttons">
+            <button class="btn-filter active" onclick="filterAgents('todos')">Todos</button>
+            <button class="btn-filter" onclick="filterAgents('Duelista')">Duelistas</button>
+            <button class="btn-filter" onclick="filterAgents('Controlador')">Controladores</button>
+            <button class="btn-filter" onclick="filterAgents('Iniciador')">Iniciadores</button>
+        </div>
+
+        <div class="agents-grid" id="agents-list">
+            </div>
+    </div>
+
+    <div id="status-box">Agente Selecionado!</div>
+
+    <footer>
+        &copy; 2024 Projeto Inspirado em VALORANT - Apenas para fins educacionais.
+    </footer>
+
+    <script>
+        // JAVASCRIPT - LÓGICA E DADOS
+        const agents = [
+            { name: "Jett", role: "Duelista", img: "https://trackercdn.com/cdn/tracker.gg/valorant/db/agents/jett_portrait.png" },
+            { name: "Omen", role: "Controlador", img: "https://trackercdn.com/cdn/tracker.gg/valorant/db/agents/omen_portrait.png" },
+            { name: "Sova", role: "Iniciador", img: "https://trackercdn.com/cdn/tracker.gg/valorant/db/agents/sova_portrait.png" },
+            { name: "Phoenix", role: "Duelista", img: "https://trackercdn.com/cdn/tracker.gg/valorant/db/agents/phoenix_portrait.png" },
+            { name: "Viper", role: "Controlador", img: "https://trackercdn.com/cdn/tracker.gg/valorant/db/agents/viper_portrait.png" },
+            { name: "Sage", role: "Sentinela", img: "https://trackercdn.com/cdn/tracker.gg/valorant/db/agents/sage_portrait.png" }
+        ];
+
+        function displayAgents(filter) {
+            const list = document.getElementById('agents-list');
+            list.innerHTML = "";
+
+            const filtered = filter === 'todos' ? agents : agents.filter(a => a.role === filter);
+
+            filtered.forEach(agent => {
+                const card = document.createElement('div');
+                card.className = 'agent-card';
+                card.onclick = () => selectAgent(agent.name);
+                
+                card.innerHTML = `
+                    <img src="${agent.img}" alt="${agent.name}" class="agent-img">
+                    <div class="agent-info">
+                        <span>${agent.role}</span>
+                        <h3>${agent.name}</h3>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function filterAgents(role) {
+            // Atualiza botões
+            document.querySelectorAll('.btn-filter').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText.includes(role) || (role === 'todos' && btn.innerText === 'Todos')) {
+                    btn.classList.add('active');
+                }
+            });
+            displayAgents(role);
+        }
+
+        function selectAgent(name) {
+            const box = document.getElementById('status-box');
+            box.innerText = "AGENTE SELECIONADO: " + name.toUpperCase();
+            box.style.display = "block";
+            
+            setTimeout(() => {
+                box.style.display = "none";
+            }, 3000);
+        }
+
+        // Inicializar
+        displayAgents('todos');
+    </script>
+</body>
+</html>
